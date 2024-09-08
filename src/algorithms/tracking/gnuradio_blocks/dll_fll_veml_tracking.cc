@@ -1012,6 +1012,10 @@ bool dll_fll_veml_tracking::cn0_and_tracking_lock_status(double coh_integration_
         }
     if (d_carrier_lock_fail_counter > d_trk_parameters.max_carrier_lock_fail or d_code_lock_fail_counter > d_trk_parameters.max_code_lock_fail)
         {
+            if (d_carrier_lock_fail_counter > d_trk_parameters.max_carrier_lock_fail)
+                std::cout<<"Por fase: "<<d_carrier_lock_test<<" de "<<d_trk_parameters.cn0_min<<std::endl;
+            else
+                std::cout<<"Por código"<<std::endl;
             std::cout << "Loss of the lock in channel " << d_channel;
             if (d_carrier_lock_fail_counter > d_trk_parameters.max_carrier_lock_fail)
                 std::cout << " (Carrier " << d_carrier_lock_fail_counter << "/" << d_trk_parameters.max_carrier_lock_fail << ")";
@@ -1038,8 +1042,9 @@ bool dll_fll_veml_tracking::cn0_and_tracking_lock_status(double coh_integration_
 void dll_fll_veml_tracking::do_correlation_step(const gr_complex *input_samples)
 {
     //gr_complex phase_estimate_as_complex(std::cos(d_carrier_phase_estimate), -std::sin(d_carrier_phase_estimate));
-    lv_32fc_t phase_estimate_as_complex[1];
-    phase_estimate_as_complex[0] = lv_cmake(std::cos(d_carrier_phase_estimate), -std::sin(d_carrier_phase_estimate));  
+    //lv_32fc_t phase_estimate_as_complex[1];
+    //phase_estimate_as_complex[0] = lv_cmake(std::cos(d_carrier_phase_estimate - d_rem_carr_phase_rad), -std::sin(d_carrier_phase_estimate - d_rem_carr_phase_rad));
+    gr_complex phase_estimate_as_complex(std::cos(d_carrier_phase_estimate), -std::sin(d_carrier_phase_estimate));  
 
     // ################# CARRIER WIPEOFF AND CORRELATORS ##############################
     // perform carrier wipe-off and compute Early, Prompt and Late correlation
@@ -1057,6 +1062,7 @@ void dll_fll_veml_tracking::do_correlation_step(const gr_complex *input_samples)
     // DATA CORRELATOR (if tracking tracks the pilot signal)
     if (d_trk_parameters.track_pilot)
         {
+            std::cout<<"Pilot signal!!!"<<std::endl;
             d_correlator_data_cpu.set_input_output_vectors(d_Prompt_Data.data(), input_samples);
             d_correlator_data_cpu.Carrier_wipeoff_multicorrelator_resampler(
                 fmod(d_rem_carr_phase_rad + d_carrier_phase_estimate, TWO_PI),
@@ -1066,7 +1072,7 @@ void dll_fll_veml_tracking::do_correlation_step(const gr_complex *input_samples)
                 static_cast<float>(d_code_phase_rate_step_chips) * static_cast<float>(d_code_samples_per_chip),
                 d_trk_parameters.vector_length);
         }
-    *d_Prompt = *d_Prompt * phase_estimate_as_complex[0];
+    *d_Prompt = *d_Prompt * phase_estimate_as_complex;
 }
 
 
@@ -1086,7 +1092,7 @@ void dll_fll_veml_tracking::run_dll_fll()
         }
     
     // FLL only discriminator - implemented by Ricardo Amorim
-    d_carr_freq_error_hz = fll_four_quadrant_atan(d_P_accu_old, d_P_accu, 0, d_current_correlation_time_s) / TWO_PI;
+    d_carr_freq_error_hz = fll_diff_atan(d_P_accu_old, d_P_accu, 0, d_current_correlation_time_s) / TWO_PI;
     d_P_accu_old = d_P_accu;    
     d_carr_error_filt_hz = d_carrier_loop_filter.get_carrier_error(static_cast<float>(d_carr_phase_error_hz), 1,
                          static_cast<float>(d_current_correlation_time_s));
@@ -1222,7 +1228,7 @@ void dll_fll_veml_tracking::update_tracking_vars()
     // d_rem_carr_phase_rad += static_cast<float>(d_carrier_phase_step_rad * static_cast<double>(d_current_prn_length_samples) + 
     //                             0.5 * d_carrier_phase_rate_step_rad * static_cast<double>(d_current_prn_length_samples) * 
     //                             static_cast<double>(d_current_prn_length_samples));
-    d_rem_carr_phase_rad += static_cast<float>(d_carrier_phase_step_rad * static_cast<double>(d_current_prn_length_samples) + 0.5 * d_carrier_phase_rate_step_rad * static_cast<double>(d_current_prn_length_samples) * static_cast<double>(d_current_prn_length_samples));
+    d_rem_carr_phase_rad += static_cast<float>(d_carrier_phase_step_rad * static_cast<double>(d_current_prn_length_samples));// + 0.5 * d_carrier_phase_rate_step_rad * static_cast<double>(d_current_prn_length_samples) * static_cast<double>(d_current_prn_length_samples));
     //d_rem_carr_phase_rad = fmod(d_rem_carr_phase_rad, TWO_PI);
 
     d_carrier_phase_estimate += static_cast<float>(d_phase_estimate_step); // Ricardo Amorim
