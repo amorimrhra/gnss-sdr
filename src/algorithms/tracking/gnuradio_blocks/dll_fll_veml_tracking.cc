@@ -1044,7 +1044,7 @@ void dll_fll_veml_tracking::do_correlation_step(const gr_complex *input_samples)
     //gr_complex phase_estimate_as_complex(std::cos(d_carrier_phase_estimate), -std::sin(d_carrier_phase_estimate));
     //lv_32fc_t phase_estimate_as_complex[1];
     //phase_estimate_as_complex[0] = lv_cmake(std::cos(d_carrier_phase_estimate - d_rem_carr_phase_rad), -std::sin(d_carrier_phase_estimate - d_rem_carr_phase_rad));
-    gr_complex phase_estimate_as_complex(std::cos(d_carrier_phase_estimate), -std::sin(d_carrier_phase_estimate));  
+    //gr_complex phase_estimate_as_complex(std::exp(lv_32fc_t(0.0, -d_carrier_phase_estimate)));  
 
     // ################# CARRIER WIPEOFF AND CORRELATORS ##############################
     // perform carrier wipe-off and compute Early, Prompt and Late correlation
@@ -1072,7 +1072,7 @@ void dll_fll_veml_tracking::do_correlation_step(const gr_complex *input_samples)
                 static_cast<float>(d_code_phase_rate_step_chips) * static_cast<float>(d_code_samples_per_chip),
                 d_trk_parameters.vector_length);
         }
-    *d_Prompt = *d_Prompt * phase_estimate_as_complex;
+    *d_Prompt = *d_Prompt * std::exp(lv_32fc_t(0.0, -d_carrier_phase_estimate));
 }
 
 
