@@ -1013,9 +1013,9 @@ bool dll_fll_veml_tracking::cn0_and_tracking_lock_status(double coh_integration_
     if (d_carrier_lock_fail_counter > d_trk_parameters.max_carrier_lock_fail or d_code_lock_fail_counter > d_trk_parameters.max_code_lock_fail)
         {
             if (d_carrier_lock_fail_counter > d_trk_parameters.max_carrier_lock_fail)
-                std::cout<<"Por fase: "<<d_carrier_lock_test<<" de "<<d_trk_parameters.cn0_min<<std::endl;
+                std::cout<<"Due to phase in channel "<<d_channel<<": "<<d_carrier_lock_test<<" de "<<d_trk_parameters.cn0_min<<std::endl;
             else
-                std::cout<<"Por código"<<std::endl;
+                std::cout<<"Due to code in channel "<<d_channel<<"."<<std::endl;
             std::cout << "Loss of the lock in channel " << d_channel;
             if (d_carrier_lock_fail_counter > d_trk_parameters.max_carrier_lock_fail)
                 std::cout << " (Carrier " << d_carrier_lock_fail_counter << "/" << d_trk_parameters.max_carrier_lock_fail << ")";
