@@ -1041,9 +1041,9 @@ bool dll_fll_veml_tracking::cn0_and_tracking_lock_status(double coh_integration_
 // - d_carrier_doppler_hz
 void dll_fll_veml_tracking::do_correlation_step(const gr_complex *input_samples)
 {
-    //gr_complex phase_estimate_as_complex(std::cos(d_carrier_phase_estimate), -std::sin(d_carrier_phase_estimate));
+    gr_complex phase_estimate_as_complex(std::cos(d_carrier_phase_estimate), -std::sin(d_carrier_phase_estimate));
     //lv_32fc_t phase_estimate_as_complex[1];
-    //phase_estimate_as_complex[0] = lv_cmake(std::cos(d_carrier_phase_estimate - d_rem_carr_phase_rad), -std::sin(d_carrier_phase_estimate - d_rem_carr_phase_rad));
+    //gr_complex phase_estimate_as_complex = lv_cmake(std::cos(d_carrier_phase_estimate - d_rem_carr_phase_rad), -std::sin(d_carrier_phase_estimate - d_rem_carr_phase_rad));
     //gr_complex phase_estimate_as_complex(std::exp(lv_32fc_t(0.0, -d_carrier_phase_estimate)));  
 
     // ################# CARRIER WIPEOFF AND CORRELATORS ##############################
@@ -1072,7 +1072,7 @@ void dll_fll_veml_tracking::do_correlation_step(const gr_complex *input_samples)
                 static_cast<float>(d_code_phase_rate_step_chips) * static_cast<float>(d_code_samples_per_chip),
                 d_trk_parameters.vector_length);
         }
-    *d_Prompt = *d_Prompt * std::exp(lv_32fc_t(0.0, -d_carrier_phase_estimate));
+    *d_Prompt = *d_Prompt * phase_estimate_as_complex;
 }
 
 
@@ -1231,7 +1231,7 @@ void dll_fll_veml_tracking::update_tracking_vars()
     d_rem_carr_phase_rad += static_cast<float>(d_carrier_phase_step_rad * static_cast<double>(d_current_prn_length_samples));// + 0.5 * d_carrier_phase_rate_step_rad * static_cast<double>(d_current_prn_length_samples) * static_cast<double>(d_current_prn_length_samples));
     //d_rem_carr_phase_rad = fmod(d_rem_carr_phase_rad, TWO_PI);
 
-    d_carrier_phase_estimate += static_cast<float>(d_phase_estimate_step); // Ricardo Amorim
+    d_carrier_phase_estimate += static_cast<float>(0.5 * d_phase_estimate_step); // Ricardo Amorim
 
     // carrier phase accumulator
     // double a = d_carrier_phase_step_rad * static_cast<double>(d_current_prn_length_samples);
