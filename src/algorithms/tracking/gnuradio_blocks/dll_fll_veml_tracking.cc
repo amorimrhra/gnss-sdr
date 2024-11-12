@@ -1072,7 +1072,9 @@ void dll_fll_veml_tracking::do_correlation_step(const gr_complex *input_samples)
                 static_cast<float>(d_code_phase_rate_step_chips) * static_cast<float>(d_code_samples_per_chip),
                 d_trk_parameters.vector_length);
         }
+    *d_Early  = *d_Early * phase_estimate_as_complex; 
     *d_Prompt = *d_Prompt * phase_estimate_as_complex;
+    *d_Late = *d_Late * phase_estimate_as_complex;
 }
 
 
@@ -1092,7 +1094,7 @@ void dll_fll_veml_tracking::run_dll_fll()
         }
     
     // FLL only discriminator - implemented by Ricardo Amorim
-    d_carr_freq_error_hz = fll_diff_atan(d_P_accu_old, d_P_accu, 0, d_current_correlation_time_s) / TWO_PI;
+    d_carr_freq_error_hz = fll_four_quadrant_atan(d_P_accu_old, d_P_accu, 0, d_current_correlation_time_s);
     d_P_accu_old = d_P_accu;    
     d_carr_error_filt_hz = d_carrier_loop_filter.get_carrier_error(static_cast<float>(d_carr_phase_error_hz), 1,
                          static_cast<float>(d_current_correlation_time_s));
